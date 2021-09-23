@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="import" href="group-widget.html">
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            background: aliceblue;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        body > div {
+            margin: 10px;
+        }
+
+        group-widget {
+            min-width: 200px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <table border="0">
+        <tr>
+            <th>
+                Settings for first widget (id="vk")
+            </th>
+        </tr>
+        <tr>
+            <td>
+                <label for="group-id">ID Группы / Group ID</label>
+                <input type="number" id="group-id" value="20003922"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="view">Вид / View</label>
+                <select id="view">
+                    <option value="participants">Участники / Participants</option>
+                    <option value="news">Новости / News</option>
+                    <option value="name">Только Название / Only Name</option>
+                </select>
+            </td>
+        </tr>
+        <tr hidden id="wide-row">
+            <td>
+                <label for="wide">Расширенный режим / Wide mode</label>
+                <input type="checkbox" id="wide"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="width">Ширина виджета / Widget width (auto / number of pixels)</label>
+                <input type="text" id="width" value="auto"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="cover">Показывать обложку / Show group cover</label>
+                <input type="checkbox" id="cover" checked/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="background">Цвет фон виджета / Widget background color</label>
+                <input type="color" id="background" value="#FFFFFF"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="text">Цвет текста виджета / Widget text color</label>
+                <input type="color" id="text" value="#000000"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="button">Цвет кнопки и заголовка виджета / Widget header and button color</label>
+                <input type="color" id="button" value="#5E81A8"/>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="widgets">
+    <group-widget id="vk" group-id="20003922"></group-widget>
+    <group-widget id="vk2" group-id="20003922" background="000000" text="FFFFFF" button="999999"></group-widget>
+    <group-widget id="vk3"></group-widget>
+</div>
+
+<script>
+  (function () {
+    'use strict';
+    let vk = document.getElementById('vk');
+    document.getElementById('group-id')
+      .addEventListener('change', function () {
+        vk['groupId'] = this.value;
+      });
+    document.getElementById('view')
+      .addEventListener('change', function () {
+        vk['view'] = this.value;
+        document.getElementById('wide-row').hidden = (vk['view'] !== 'news');
+      });
+    document.getElementById('wide')
+      .addEventListener('change', function () {
+        vk['wide'] = this.checked.toString();
+      });
+    document.getElementById('width')
+      .addEventListener('change', function () {
+        vk['width'] = this.value;
+      });
+    document.getElementById('cover')
+      .addEventListener('change', function () {
+        vk['cover'] = this.checked.toString();
+      });
+    document.getElementById('background')
+      .addEventListener('change', function (e) {
+        vk['background'] = e.target.value.slice(1);
+      }, false);
+    document.getElementById('text')
+      .addEventListener('change', function (e) {
+        vk['text'] = e.target.value.slice(1);
+      }, false);
+    document.getElementById('button')
+      .addEventListener('change', function (e) {
+        vk['button'] = e.target.value.slice(1);
+      }, false);
+  })
+  ();
+</script>
+</body>
+</html>
