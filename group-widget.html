@@ -1,0 +1,139 @@
+<template>
+    <style>
+        .vk-groups-errors {
+            display: none;
+            padding: 20px;
+            background-color: palevioletred;
+            font-size: 16px;
+            color: darkred;
+            text-align: center;
+        }
+    </style>
+</template>
+<script>
+  (function () {
+    'use strict';
+    let componentAttrs = {
+      'group-id': null,         // Numberic group ID
+      view: 'participants',     // One of ['news', 'name', 'participants']
+      cover: 'true',            // Show cover or not ['true', 'false']
+      width: 'auto',            // Width of widget: 'auto' or N
+      background: 'FFFFFF',     // Widget background color in hex
+      text: '000000',           // Widget text color in hex
+      button: '5E81A8',         // Widget header and button color in hex
+      wide: 'false'             // Wide mode for news view
+    };
+    const componentDocument = document.currentScript.ownerDocument;
+    const componentTemplate = componentDocument.querySelector('template');
+    window.GroupWidget = class GroupWidget extends HTMLElement {
+      constructor() {
+        super();
+        this.appendChild(
+          document.importNode(componentTemplate.content, true)
+        );
+        this.initialized = false;
+
+        this.groupBlock = document.createElement('div');
+        this.groupBlock.id = `vk-groups-${Math.random().toString(36).substring(7)}`;
+        this.appendChild(this.groupBlock);
+
+        this.errorsBlock = document.createElement('div');
+        this.errorsBlock.id = `${this.groupBlock.id}-errors`;
+        this.errorsBlock.className = 'vk-groups-errors';
+        this.appendChild(this.errorsBlock);
+      }
+
+      // List of widget attributes
+      static get observedAttributes() {
+        return Object.keys(componentAttrs);
+      }
+
+      // Downloads VKApi script, if VK is not defined
+      downloadVKScript() {
+        return new Promise((resolve, reject) => {
+          let script = document.createElement("script");
+          script.src = 'https://vk.com/js/api/openapi.js?146';
+          script.type = 'text/javascript';
+          script.onerror = reject;
+          script.onload = resolve;
+          this.appendChild(script);
+        })
+      }
+
+      update() {
+        const block = this.groupBlock;
+
+        // cleaning
+        while (block.firstChild) {
+          block.removeChild(block.firstChild);
+        }
+
+        this.updateIFrame();
+      }
+
+      handleErrors(error) {
+        this.errorsBlock.style.display = 'block';
+        this.errorsBlock.innerText = error;
+      }
+
+      updateIFrame() {
+        let mode = 3;
+        if (this.view === 'news') mode = 4;
+        else if (this.view === 'name') mode = 1;
+
+        const settings = {
+          mode,
+          no_cover: this.cover === 'false',
+          width: this.width,
+          color1: this.background,
+          color2: this.text,
+          color3: this.button,
+          wide: +(this.wide === 'true')
+        };
+
+        let script = document.createElement("script");
+        script.innerHTML = `VK.Widgets.Group("${this.groupBlock.id}", ${JSON.stringify(settings)}, ${this.groupId});`;
+        script.onerror = this.handleErrors.bind(this);
+        this.groupBlock.appendChild(script);
+      }
+
+      // An attribute was added, removed, updated, or replaced.
+      attributeChangedCallback() {
+        if (this.initialized) {
+          this.update();
+        }
+      }
+
+      // Called every time the element is inserted into the DOM.
+      connectedCallback() {
+        if (!this.groupId) {
+          this.handleErrors('No group id provided. Enter id of group in group-id attribute!');
+        }
+
+        if (!window.VK) {
+          this.downloadVKScript().then(this.updateIFrame.bind(this));
+        } else {
+          this.updateIFrame();
+        }
+
+        this.initialized = true;
+      }
+    };
+
+    // init properties
+    Object.keys(componentAttrs).forEach(function (attr) {
+      let prop = attr.replace(/-([a-z])/g, function (match, letter) {
+        return letter.toUpperCase();
+      });
+      Object.defineProperty(GroupWidget.prototype, prop, {
+        get: function () {
+          return this.getAttribute(attr) || componentAttrs[attr];
+        },
+        set: function (value) {
+          this.setAttribute(attr, value || componentAttrs[attr]);
+        }
+      });
+    });
+    window.customElements.define('group-widget', GroupWidget);
+  })();
+</script>
